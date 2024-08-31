@@ -7,6 +7,7 @@ var windowChat = [];
 let globalPublicKeyPem = "";
 let globalPrivateKeyPem = "";
 let globalKeypair = "";
+let globalLogin = "";
 
 let url  = "";
 let port = "";
@@ -14,7 +15,8 @@ let port = "";
 function connect(){
     url = document.getElementById('url').value;
     port = document.getElementById('port').value;
-    password = document.getElementById('password').value;    
+    login = document.getElementById('login').value;    
+    password = document.getElementById('password').value;        
     
     let content = document.getElementById("content");
     content.style.display = "block"; 
@@ -71,7 +73,8 @@ function connect(){
         }
 
         const passwordEncrypted = encryptAES(password, decryptedMessageAesKey).toString();
-        ws = "ws://" + url + ":" + port + "?room=" + encodeURIComponent(passwordEncrypted) + "&session=" + encodeURIComponent(session);
+        const loginEncrypted    = encryptAES(login, decryptedMessageAesKey).toString();
+        ws = "ws://" + url + ":" + port + "?room=" + encodeURIComponent(passwordEncrypted) + "&session=" + encodeURIComponent(session) + "&login=" + encodeURIComponent(loginEncrypted);
         //ws = "wss://enlightenment.xaa.pl:443?room=" + encodeURIComponent(passwordEncrypted) + "&session=" + encodeURIComponent(session);
         console.log(ws) 
 
@@ -82,6 +85,9 @@ function connect(){
             connFlag = 1;
         });
         console.log("login END");
+
+        document.getElementById("you").innerHTML = login;
+        globalLogin = login;
 
         socket.addEventListener("message", function(event) {
             let response = event.data; 
@@ -99,14 +105,20 @@ function connect(){
                     break;
 
                 case ("clients"):
+
                     let ids = xmlDoc.getElementsByTagName("id");
-                    for (let i = 0; i < ids.length; i++) {
+                    loginTemp =  globalLogin
+
+                    for (let i = 0; i < ids.length; i++) {               
+                        if(ids[i].childNodes[0].nodeValue == loginTemp){
+                            continue;
+                        }         
                         console.log(ids[i].childNodes[0].nodeValue);
                         clients += "<button class='cli btn-clients' onclick=\"getInner('" + ids[i].childNodes[0].nodeValue + "')\">";
                         clients += ids[i].childNodes[0].nodeValue + "</br>";
                         clients += "</button>";
                     }
-                    document.getElementById("clients").innerHTML = clients;
+                    document.getElementById("clients").innerHTML = clients;                    
                     break;
 
                 case ("send"):
@@ -123,8 +135,14 @@ function connect(){
 
                     var client = document.getElementById(id);
                     if(client){
-                        //client.innerHTML += "<div>" + id + ": " + decryptedText + "</div>";
-                        client.innerHTML += "<div class='cloud-msg'><span class='cloud-msg-header recive'>" + id + "</span><span class='cloud-msg-content'>" + decryptedText + "</span></div>";
+                        //client.innerHTML += "<div>" + id + ": " + decryptedText + "</div>";                        
+
+                        if(id == globalLogin){
+                            client.innerHTML += "<div class='cloud-msg'><span class='cloud-msg-header'>" + id + "</span><span class='cloud-msg-content'>" + decryptedText + "</span></div>";
+                        }else{
+                            client.innerHTML += "<div class='cloud-msg'><span class='cloud-msg-header recive'>" + id + "</span><span class='cloud-msg-content'>" + decryptedText + "</span></div>";
+                        }
+
                         windowChat.push(id);
                         scrollToBottom();
                     }else{

@@ -135,9 +135,8 @@ input {
 
 
 
-
 #receiver {
-    background: rgba(50, 50, 50, 0.8);
+    background: rgba(50, 50, 50, 1);
     color: rgba(255, 255, 255, 0.8);
     width: calc(100% - 20px);
     min-height: 40px;
@@ -154,7 +153,7 @@ input {
     text-align: center;
     color: rgba(250, 14, 14, 0.8);
     font-weight: bold;
-    font-size: 16px;
+    font-size: 20px;
 
 }
 
