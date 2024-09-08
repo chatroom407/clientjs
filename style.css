@@ -24,7 +24,8 @@ input {
 }
 
 #logo{
-    margin-top: 10px; 
+    margin-top: 10px;
+    text-align: center;
 }
 
 #logo img{
@@ -334,3 +335,27 @@ textarea#msg:focus {
         font-size: 11px;
     }
 }
+
+#header {
+    text-align: center;
+}
+
+label {
+    display: block;
+    text-align: left;
+}
+
+label .fieldwrapper {
+    text-align: center;
+}
+
+#loginWindow button {
+    width: 80%;
+    height: 30px;
+}
+
+#loginWindow input[type=text]:focus {
+    background-color: white;
+    color: black;
+}
+

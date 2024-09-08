@@ -35,20 +35,36 @@
 </head>
 <body>
     <div id="logo">
-        <center>
-            <img src="Room1.jpeg" width="200" height="200"/>
-        </center>
+        <img src="Room1.jpeg" width="200" height="200">
     </div>
     
     <div id='loginWindow'>
-        <center>
-            <div id='header'><center>RooM</center></div>
-            <input id='url' type='text' value='193.93.89.68' />
-            <input id='port' type='text' value='8081'/>
-            <input id='login' type='text' value='abcd' />
-            <input id='password' type='text' value='backend219'/>
-            <button onclick="connect()">login</button>
-        </center>
+        <div style="text-align:center">
+            <div id='header'>RooM</div>
+            <label>Server:
+                <div class="fieldwrapper">
+                    <input id='url' type='text' value='193.93.89.68' >
+                </div>
+            </label>
+            <label>Server port:
+                <div class="fieldwrapper">
+                    <input id='port' type='text' value='8081'>
+                </div>
+            </label>
+            <label>Your nickname:
+                <div class="fieldwrapper">
+                    <input id='login' type='text' value='abcd' >
+                </div>
+            </label>
+            <label>Password:
+                <a id="pwshowlink" href="javascript:ClickedPwToggle()"
+                    style="color:orange;font-weight:bold"></a>
+                <div class="fieldwrapper">
+                    <input id='password' type='password' value='backend219'>
+                </div>
+            </label>
+            <button onclick="connect()">Log in</button>
+        </div>
     </div>
 
     <div id='content'>
@@ -68,7 +84,7 @@
             <div class='col100'>
                 <b>Reciver:</b></br>
                 <div id='reciverPubKey'></div>
-                <input id='client' style='width: 100%;'/>
+                <input id='client' style='width: 100%;'>
             </div>
         </span>
 
@@ -102,7 +118,7 @@
         -->
 
         <div style="display: flex; justify-content: center; align-items: center;" class="col100">
-            <input id='search' type='text' value='' />            
+            <input id='search' type='text' value='' >            
             <button class='button-icon' type="button" title="Search Users" onclick='clients()'>
                 <i class="fas fa-search"></i> 
             </button>            
@@ -123,6 +139,32 @@
         
         document.getElementById("myPrivKey").innerHTML = privateKey;
         document.getElementById("myPubKey").innerHTML = publicKey;
+    </script>
+    
+    <script type="text/javascript">
+        var PasswdFieldElem = document.getElementById ("password");
+        var PasswdShowLinkElem = document.getElementById ("pwshowlink");
+        
+        var IsPasswordVisible;
+        function ShowPassword () {
+            PasswdFieldElem.setAttribute ("type", "text");
+            PasswdShowLinkElem.innerText = "Hide";
+            IsPasswordVisible = true;
+        }
+        function HidePassword () {
+            PasswdFieldElem.setAttribute ("type", "password");
+            PasswdShowLinkElem.innerText = "Show";
+            IsPasswordVisible = false;
+        }
+        
+        HidePassword ();
+        
+        function ClickedPwToggle () {
+            if (IsPasswordVisible)
+                HidePassword ();
+            else
+                ShowPassword ();
+        }
     </script>
 
 </body>
