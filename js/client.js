@@ -15,7 +15,7 @@ let port = "";
 function connect(){
     url = document.getElementById('url').value;
     port = document.getElementById('port').value;
-    login = document.getElementById('login').value;    
+    login = document.getElementById('login').value;
     password = document.getElementById('password').value;        
     
     let content = document.getElementById("content");
@@ -278,7 +278,7 @@ async function getServerKey() {
 
         let encodedPublicKey = encodeURIComponent(btoa(publicKeyPem));
 
-        let response = await fetch(`http://` + url + `/room407/server/deliveryKey.php?pk=${encodedPublicKey}`);
+        let response = await fetch(`http://` + url + `/room407/deliveryKey.php?pk=${encodedPublicKey}`);
         if (!response.ok) {
             throw new Error('Błąd: ' + response.status);
         }
