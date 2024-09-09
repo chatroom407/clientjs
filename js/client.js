@@ -97,7 +97,7 @@ function connect(){
             let instance = xmlDoc.getElementsByTagName("instance")[0].childNodes[0].nodeValue;
             console.log(instance);
 
-            let clients = "";
+            let clientListHTML = "";
             switch (instance){
                 case ("you"):
                     let myId = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
@@ -107,18 +107,20 @@ function connect(){
                 case ("clients"):
 
                     let ids = xmlDoc.getElementsByTagName("id");
-                    loginTemp =  globalLogin
+                    loginTemp = globalLogin;
 
-                    for (let i = 0; i < ids.length; i++) {               
-                        if(ids[i].childNodes[0].nodeValue == loginTemp){
+                    for (let i = 0; i < ids.length; i++) {
+                        let clientName = ids[i].childNodes[0].nodeValue;
+                        if(clientName == loginTemp){
                             continue;
                         }         
-                        console.log(ids[i].childNodes[0].nodeValue);
-                        clients += "<button class='cli btn-clients' onclick=\"getInner('" + ids[i].childNodes[0].nodeValue + "')\">";
-                        clients += ids[i].childNodes[0].nodeValue + "</br>";
-                        clients += "</button>";
+                        console.log(clientName);
+                        clientListHTML += "<button class='cli btn-clients' onclick=\"getInner('"
+                                + clientName + "')\">";
+                        clientListHTML += clientName + "</br>";
+                        clientListHTML += "</button>";
                     }
-                    document.getElementById("clients").innerHTML = clients;                    
+                    document.getElementById("clients").innerHTML = clientListHTML;                    
                     break;
 
                 case ("send"):
