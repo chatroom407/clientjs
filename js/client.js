@@ -12,6 +12,106 @@ let globalLogin = "";
 let url  = "";
 let port = "";
 
+// Tablica wszystkich u¿ytkowników, z którymi rozmawiamy
+// Wa¿n¹ w³aœciwoœci¹ ka¿dego obiektu rozmówcy jest username, czyli jego
+// nazwa u¿ytkownika.
+var RecipientTable = [];
+
+// Spis w³aœciwoœci obiektów bêd¹cych elementami RecipientTable:
+// username        - Nazwa, jak wspomniano wy¿ej
+// windowElement   - Element DOM bêd¹cy "oknem" wyœwietlania rozmowy z danym
+//                   u¿ytkownikiem
+// hasUnreads      - Czy s¹ nowe nieprzeczytane wiadomoœci w czacie
+
+var SelectedRecipient = null; // Wybrany przez u¿ytkownika rozmówca
+
+function GetRecipient (username) {
+    // Znajduje obiekt reprezentuj¹cy rozmówcê o podanej nazwie, a w razie
+    // potrzeby tworzy go
+    // To powinna byæ jedyna droga tworzenia obiektów-rozmówców
+    var i, nRecipients;
+    var reObj;
+    var foundRec;
+    
+    i = 0;
+    nRecipients = RecipientTable.length;
+    foundRec = null;
+    
+    while (i < nRecipients) {
+        reObj = RecipientTable[i];
+        if (reObj.username == username) {
+            // Znaleziono rozmówcê w tabeli
+            foundRec = reObj;
+            break;
+        }
+        ++i;
+    }
+
+    if (!foundRec) {
+        // Obiekt ¿¹danego rozmówcy nie zosta³ odnaleziony, wiêc trzeba
+        // go utworzyæ i dodaæ do tablicy.
+        foundRec = RecipientTable[nRecipients] = new Object ();
+        foundRec.username = username;
+        foundRec.hasUnreads = false;
+        
+        // Metody obiektu rozmówcy
+        foundRec.isViewedNow = function () {
+            // Czy czat z rozmówc¹ jest aktywny, a wiêc przede wszystkim czy
+            // komunikator jest aktywnym oknem przegl¹darki.
+            return IsOurTabActive && SelectedRecipient == this;
+        };
+    }
+    return foundRec;
+}
+
+
+function ProvideChatWindow (recipient) {
+    // Zapewnij okno rozmowy dla danego rozmówcy, je¿eli jeszcze go nie ma
+    
+    if (recipient.windowElement)
+        return; // Ju¿ istnieje
+    
+    let w; // Przygotowywane okno
+    w = document.createElement ("DIV");
+    w.className = "window-msg";
+    // Okno domyœlnie jest ukryte (zanim zostanie aktywowane)
+    HideElement (w);
+    
+    // Dodaj okno do obszaru wiadomoœci
+    document.getElementById("messages").appendChild (w);
+    
+    // Przypisz okno do obiektu
+    recipient.windowElement = w;
+    // Dziêki temu nie musi ono mieæ ID okreœlaj¹cego nazwê rozmówcy,
+    // którego dotyczy.
+}
+
+
+function IncomingMessage (recipient, msgText) {
+    // Nowa wiadomoœæ od rozmówcy reprezentowanego przez obiekt.
+    // Funkcja ta przyjmuje ju¿ rozszyfrowan¹ wiadomoœæ i jej rol¹ jest
+    // m. in. wyœwietlenie jej.
+    // W tym celu rozmówca musi mieæ u nas okno (stworzone przez
+    // ProvideChatWindow).
+    
+    console.log ("Przyszla odszyfrowania wiadomosc");
+    console.log ("Od: " + recipient.username);
+    console.log ("Tresc: " + msgText);
+    
+    let cld; // Chmurka wiadomoœci
+    cld = document.createElement ("DIV");
+    cld.className = "cloud-msg";
+    cld.innerHTML = '<span class="cloud-msg-header">' + recipient.username
+            + '</span><span class="cloud-msg-content">' + msgText
+            + "</span></div>";
+    // Umieœæ chmurkê we w³aœciwym oknie
+    recipient.windowElement.appendChild (cld);
+    
+    // Przeka¿ do systemu powiadomieñ i zliczania nieprzeczytanych
+    SignalNewUnread (recipient);
+}
+
+
 function connect(){
     url = document.getElementById('url').value;
     port = document.getElementById('port').value;
@@ -95,7 +195,8 @@ function connect(){
             const xmlDoc = parser.parseFromString(response, "text/xml" );
 
             let instance = xmlDoc.getElementsByTagName("instance")[0].childNodes[0].nodeValue;
-            console.log(instance);
+            console.log ("Otrzymano wiadomosc: " + response);
+            console.log("Typ wiadomosci: " + instance);
 
             let clientListHTML = "";
             switch (instance){
@@ -133,8 +234,16 @@ function connect(){
                     console.log("(msg): " + response);
                     privKey = document.getElementById("myPrivKey").innerHTML;
                     crypt.setPrivateKey(privKey);
-                    decryptedText = crypt.decrypt(msg);                    
+                    decryptedText = crypt.decrypt(msg);
+                    
+                    let msgReObj = GetRecipient (id);
+                    
+                    ProvideChatWindow (msgReObj);
+                    IncomingMessage (msgReObj, decryptedText);
 
+                    /*
+                    STARY KOD WYŒWIETLAJ¥CY WIADOMOŒÆ
+                    
                     var client = document.getElementById(id);
                     if(client){
                         //client.innerHTML += "<div>" + id + ": " + decryptedText + "</div>";                        
@@ -155,10 +264,11 @@ function connect(){
                             console.error('Element o id "messages" nie zostaÅ‚ znaleziony.');
                         }
                     }
+                    */
                     break;
 
                 case ("pls"):
-                    clientId = xmlDoc.getElementsByTagName("mid")[0].childNodes[0].nodeValue;;
+                    clientId = xmlDoc.getElementsByTagName("mid")[0].childNodes[0].nodeValue;
                     myPubKey = document.getElementById("myPubKey").innerHTML;
                     console.log("pls: " + clientId);
                     tb = "<tb>";
@@ -206,7 +316,7 @@ function send(){
     my = document.getElementById("my").innerHTML;
 
     var crypt = new JSEncrypt();
-    pubKey = document.getElementById("reciverPubKey").innerHTML
+    pubKey = document.getElementById("reciverPubKey").innerHTML;
     crypt.setPublicKey(pubKey);
     var encryptedText = crypt.encrypt(msg);
 
@@ -216,6 +326,7 @@ function send(){
     tb += "<msg>" + encryptedText + "</msg>";
     tb += "<mid>" + my + "</mid>";
     tb += "</tb>";
+    console.log ("Wysylanie wiadomosci: " + tb);
     socket.send(tb);
 
     var client = document.getElementById(clientId);
@@ -315,20 +426,32 @@ function clean(){
     });
 }
 
-function getInner(clientId){
-    console.log("getInner")
-    document.getElementById("client").value = clientId;
-    
-    document.getElementById("receiver").innerHTML = clientId;     
+var ActiveChatWindow = null; // Aktywne okno czatu
+function ChActiveWnd (newChat) {
+    // Zmieñ aktywne okno czatu, tak aby tylko jedno by³o widoczne naraz.
+    if (ActiveChatWindow)
+        HideElement (ActiveChatWindow);
+    ShowElement (ActiveChatWindow = newChat);
+}
 
-    windowChat.forEach(el => {
+function getInner(clientId){
+    console.log("getInner");
+    document.getElementById("client").value = clientId;
+    document.getElementById("receiver").innerHTML = clientId;
+    
+    ProvideChatWindow (SelectedRecipient = GetRecipient (clientId));
+    ChActiveWnd (SelectedRecipient.windowElement);
+    SignalChatRead (SelectedRecipient);
+    
+    /* windowChat.forEach(el => {
         console.log(el.innerHTML);
         if (clientId == el) {
             document.getElementById(el).style.display = 'block';       
         } else {
             document.getElementById(el).style.display = 'none';
         }
-    });
+    }); */
+    
     plsKey();
 }
 
