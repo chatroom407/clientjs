@@ -6,7 +6,11 @@
 var OriginalPageTitle = document.title;
 
 // Licznik nieprzeczytanych czatów
-var NumUnreads = 0;
+var NumUnreads;
+
+function InitUnreadModule () {
+    NumUnreads = 0;
+}
 
 function ShowUnreadCount () {
     // Poka¿ licznik nieprzeczytanych na pasku tytu³u,

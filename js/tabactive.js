@@ -5,6 +5,7 @@ var IsOurTabActive = true;
 window.onfocus = function () {
     // U¿ytkownik uaktywni³ nasz¹ kartê
     IsOurTabActive = true;
+    TabActivated ();
 };
 
 window.onblur = function () {

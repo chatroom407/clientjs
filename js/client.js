@@ -12,18 +12,22 @@ let globalLogin = "";
 let url  = "";
 let port = "";
 
+var MyUsername;
+
 // Tablica wszystkich u¿ytkowników, z którymi rozmawiamy
 // Wa¿n¹ w³aœciwoœci¹ ka¿dego obiektu rozmówcy jest username, czyli jego
 // nazwa u¿ytkownika.
-var RecipientTable = [];
+var RecipientTable;
 
 // Spis w³aœciwoœci obiektów bêd¹cych elementami RecipientTable:
 // username        - Nazwa, jak wspomniano wy¿ej
 // windowElement   - Element DOM bêd¹cy "oknem" wyœwietlania rozmowy z danym
 //                   u¿ytkownikiem
 // hasUnreads      - Czy s¹ nowe nieprzeczytane wiadomoœci w czacie
+// pubKey          - Klucz publiczny u¿ytkownika
+// knownPubKey     - Czy klucz jest znany
 
-var SelectedRecipient = null; // Wybrany przez u¿ytkownika rozmówca
+var SelectedRecipient; // Wybrany przez u¿ytkownika rozmówca
 
 function GetRecipient (username) {
     // Znajduje obiekt reprezentuj¹cy rozmówcê o podanej nazwie, a w razie
@@ -53,6 +57,7 @@ function GetRecipient (username) {
         foundRec = RecipientTable[nRecipients] = new Object ();
         foundRec.username = username;
         foundRec.hasUnreads = false;
+        foundRec.knownPubKey = false;
         
         // Metody obiektu rozmówcy
         foundRec.isViewedNow = function () {
@@ -97,25 +102,35 @@ function IncomingMessage (recipient, msgText) {
     console.log ("Przyszla odszyfrowania wiadomosc");
     console.log ("Od: " + recipient.username);
     console.log ("Tresc: " + msgText);
-    
-    let cld; // Chmurka wiadomoœci
-    cld = document.createElement ("DIV");
-    cld.className = "cloud-msg";
-    cld.innerHTML = '<span class="cloud-msg-header">' + recipient.username
-            + '</span><span class="cloud-msg-content">' + msgText
-            + "</span></div>";
+
     // Umieœæ chmurkê we w³aœciwym oknie
-    recipient.windowElement.appendChild (cld);
+    recipient.windowElement.appendChild (
+        BuildMsgCloud (recipient.username, msgText, false)
+    );
+    scrollToBottom ();
     
     // Przeka¿ do systemu powiadomieñ i zliczania nieprzeczytanych
     SignalNewUnread (recipient);
 }
 
+function TabActivated () {
+    if (SelectedRecipient)
+        SignalChatRead (SelectedRecipient);
+}
+
+var ActiveChatWindow; // Aktywne okno czatu
 
 function connect(){
+    InitUnreadModule ();
+    RecipientTable = new Array ();
+    SelectedRecipient = null;
+    ActiveChatWindow = null;
+    document.getElementById ("messages").innerHTML = "";
+    
+    //var url, port, login, password;
     url = document.getElementById('url').value;
     port = document.getElementById('port').value;
-    login = document.getElementById('login').value;
+    MyUsername = login = document.getElementById('login').value;
     password = document.getElementById('password').value;        
     
     let content = document.getElementById("content");
@@ -310,28 +325,41 @@ function connect(){
     });    
 }
 
-function send(){
-    clientId = document.getElementById("client").value;
-    msg = document.getElementById("msg").value;
-    my = document.getElementById("my").innerHTML;
-
+function OutgoingMessage (msg) {
     var crypt = new JSEncrypt();
     pubKey = document.getElementById("reciverPubKey").innerHTML;
     crypt.setPublicKey(pubKey);
     var encryptedText = crypt.encrypt(msg);
-
+    var my = document.getElementById("my").innerHTML;
+    
+    var tb;
     tb  = "<tb>";
     tb += "<instance>send</instance>";
-    tb += "<id>" + clientId + "</id>";
+    tb += "<id>" + SelectedRecipient.username + "</id>";
     tb += "<msg>" + encryptedText + "</msg>";
     tb += "<mid>" + my + "</mid>";
     tb += "</tb>";
     console.log ("Wysylanie wiadomosci: " + tb);
     socket.send(tb);
+    
+    SelectedRecipient.windowElement.appendChild (
+        BuildMsgCloud (my, msg, true)
+    );
+    scrollToBottom ();
+}
 
-    var client = document.getElementById(clientId);
+function send(){
+    //clientId = document.getElementById("client").value;
+    var msgField = document.getElementById("msg"); 
+    msg = msgField.value;
+    msgField.value = "";
+    msgField.focus ();
+    
+    OutgoingMessage (msg);
+
+    /*var client = document.getElementById(clientId);
     if(client){
-        client.innerHTML += "<div class='cloud-msg'><span class='cloud-msg-header'>" + my + "</span><span class='cloud-msg-content'>" + msg + "</span></div>";
+        client.innerHTML += "<div class='cloud-msg'></div>";
         windowChat.push(clientId);
         scrollToBottom();
     }else{
@@ -341,7 +369,7 @@ function send(){
         } else {
             console.error('Element o id "messages" nie zostaÅ‚ znaleziony.');
         }
-    }
+    }*/
 }
 
 function plsKey(){
@@ -426,7 +454,6 @@ function clean(){
     });
 }
 
-var ActiveChatWindow = null; // Aktywne okno czatu
 function ChActiveWnd (newChat) {
     // Zmieñ aktywne okno czatu, tak aby tylko jedno by³o widoczne naraz.
     if (ActiveChatWindow)
