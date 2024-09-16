@@ -11,7 +11,7 @@ function BuildMsgCloud (who, text, direction) {
     cl.appendChild (s);
     s = document.createElement ("SPAN");
     s.className = "cloud-msg-content";
-    s.innerText = text;
+    s.innerHTML = MsgContentFormat (text);
     cl.appendChild (s);
     function dateStr () {
         var d = new Date ();
