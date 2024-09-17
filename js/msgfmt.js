@@ -7,12 +7,14 @@
 var SMILEY_DIR = "smileys/";
 var SMILEY_EXT = ".png";
 var SMILEYS = [
-    {"sym" : ":)", "name" : "Happy"},
-    {"sym" : ":(", "name" : "Sad"},
-    {"sym" : ":D", "name" : "Laugh"},
-    {"sym" : ":O", "name" : "Suprised"},
-    {"sym" : ";)", "name" : "Wink"},
-    {"sym" : ":P", "name" : "Tongue"}
+    {"sym" : [":)", ":-)"], "filename" : "Happy"},
+    {"sym" : [":(", ":-("], "filename" : "Sad"},
+    {"sym" : [":D", ":-D"], "filename" : "Laugh"},
+    {"sym" : [":O", ":-O"], "filename" : "Suprised"},
+    {"sym" : [";)"], "filename" : "Wink"},
+    {"sym" : [":P", ":-P"], "filename" : "Tongue"},
+    {"sym" : ["<3", "[love]"], "filename" : "Heart"},
+    {"sym" : ["[thumbsup]", "[like]", "[+1]"], "filename" : "ThumbsUp"}
 ];
 var N_SMILEYS = SMILEYS.length;
 
@@ -41,15 +43,20 @@ function MsgContentFormat (inMsg) {
     }
     
     function testsmiley () {
-        var i = 0;
-        var s;
+        var i = 0, j;
+        var s, nsy;
         while (i < N_SMILEYS) {
             s = SMILEYS[i++];
-            if (infront (s.sym)) {
-                outHTML += '<img src="'
-                        + SMILEY_DIR + s.name + SMILEY_EXT
-                        + '" class="smiley">';
-                return true;
+            nsy = s.sym.length;
+            j = 0;
+            while (j < nsy) {
+                if (infront (s.sym[j])) {
+                    outHTML += '<img src="'
+                            + SMILEY_DIR + s.filename + SMILEY_EXT
+                            + '" class="smiley">';
+                    return true;
+                }
+                ++j;
             }
         }
         return false;
@@ -61,7 +68,9 @@ function MsgContentFormat (inMsg) {
             ;
         else {
             ch = nxchar ();
-            if (ch == "<")
+            if (ch == "\n")
+                ch = "<br>";
+            else if (ch == "<")
                 ch = "&lt";
             else if (ch == ">")
                 ch = "&gt;";

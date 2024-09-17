@@ -12,27 +12,17 @@ let globalLogin = "";
 let url  = "";
 let port = "";
 
-var MyUsername;
-
 // Tablica wszystkich u¿ytkowników, z którymi rozmawiamy
 // Wa¿n¹ w³aœciwoœci¹ ka¿dego obiektu rozmówcy jest username, czyli jego
 // nazwa u¿ytkownika.
-var RecipientTable;
+var RecipientTable = [];
 
 // Spis w³aœciwoœci obiektów bêd¹cych elementami RecipientTable:
 // username        - Nazwa, jak wspomniano wy¿ej
-// windowElement   - Element DOM bêd¹cy "oknem" wyœwietlania rozmowy z danym
-//                   u¿ytkownikiem
-// hasUnreads      - Czy s¹ nowe nieprzeczytane wiadomoœci w czacie
-// pubKey          - Klucz publiczny u¿ytkownika
-// knownPubKey     - Czy klucz jest znany
-
-var SelectedRecipient; // Wybrany przez u¿ytkownika rozmówca
 
 function GetRecipient (username) {
     // Znajduje obiekt reprezentuj¹cy rozmówcê o podanej nazwie, a w razie
     // potrzeby tworzy go
-    // To powinna byæ jedyna droga tworzenia obiektów-rozmówców
     var i, nRecipients;
     var reObj;
     var foundRec;
@@ -56,81 +46,14 @@ function GetRecipient (username) {
         // go utworzyæ i dodaæ do tablicy.
         foundRec = RecipientTable[nRecipients] = new Object ();
         foundRec.username = username;
-        foundRec.hasUnreads = false;
-        foundRec.knownPubKey = false;
-        
-        // Metody obiektu rozmówcy
-        foundRec.isViewedNow = function () {
-            // Czy czat z rozmówc¹ jest aktywny, a wiêc przede wszystkim czy
-            // komunikator jest aktywnym oknem przegl¹darki.
-            return IsOurTabActive && SelectedRecipient == this;
-        };
     }
     return foundRec;
 }
 
-
-function ProvideChatWindow (recipient) {
-    // Zapewnij okno rozmowy dla danego rozmówcy, je¿eli jeszcze go nie ma
-    
-    if (recipient.windowElement)
-        return; // Ju¿ istnieje
-    
-    let w; // Przygotowywane okno
-    w = document.createElement ("DIV");
-    w.className = "window-msg";
-    // Okno domyœlnie jest ukryte (zanim zostanie aktywowane)
-    HideElement (w);
-    
-    // Dodaj okno do obszaru wiadomoœci
-    document.getElementById("messages").appendChild (w);
-    
-    // Przypisz okno do obiektu
-    recipient.windowElement = w;
-    // Dziêki temu nie musi ono mieæ ID okreœlaj¹cego nazwê rozmówcy,
-    // którego dotyczy.
-}
-
-
-function IncomingMessage (recipient, msgText) {
-    // Nowa wiadomoœæ od rozmówcy reprezentowanego przez obiekt.
-    // Funkcja ta przyjmuje ju¿ rozszyfrowan¹ wiadomoœæ i jej rol¹ jest
-    // m. in. wyœwietlenie jej.
-    // W tym celu rozmówca musi mieæ u nas okno (stworzone przez
-    // ProvideChatWindow).
-    
-    console.log ("Przyszla odszyfrowania wiadomosc");
-    console.log ("Od: " + recipient.username);
-    console.log ("Tresc: " + msgText);
-
-    // Umieœæ chmurkê we w³aœciwym oknie
-    recipient.windowElement.appendChild (
-        BuildMsgCloud (recipient.username, msgText, false)
-    );
-    scrollToBottom ();
-    
-    // Przeka¿ do systemu powiadomieñ i zliczania nieprzeczytanych
-    SignalNewUnread (recipient);
-}
-
-function TabActivated () {
-    if (SelectedRecipient)
-        SignalChatRead (SelectedRecipient);
-}
-
-var ActiveChatWindow; // Aktywne okno czatu
-
 function connect(){
-    InitUnreadModule ();
-    RecipientTable = new Array ();
-    SelectedRecipient = null;
-    ActiveChatWindow = null;
-    document.getElementById ("messages").innerHTML = "";
-    
-    //var url, port, login, password;
     url = document.getElementById('url').value;
     port = document.getElementById('port').value;
-    MyUsername = login = document.getElementById('login').value;
+    login = document.getElementById('login').value;
     password = document.getElementById('password').value;        
     
     let content = document.getElementById("content");
@@ -249,16 +172,8 @@ function connect(){
                     console.log("(msg): " + response);
                     privKey = document.getElementById("myPrivKey").innerHTML;
                     crypt.setPrivateKey(privKey);
-                    decryptedText = crypt.decrypt(msg);
-                    
-                    let msgReObj = GetRecipient (id);
-                    
-                    ProvideChatWindow (msgReObj);
-                    IncomingMessage (msgReObj, decryptedText);
+                    decryptedText = crypt.decrypt(msg);                    
 
-                    /*
-                    STARY KOD WYŒWIETLAJ¥CY WIADOMOŒÆ
-                    
                     var client = document.getElementById(id);
                     if(client){
                         //client.innerHTML += "<div>" + id + ": " + decryptedText + "</div>";                        
@@ -279,7 +194,6 @@ function connect(){
                             console.error('Element o id "messages" nie zostaÅ‚ znaleziony.');
                         }
                     }
-                    */
                     break;
 
                 case ("pls"):
@@ -309,14 +223,11 @@ function connect(){
 
         socket.addEventListener("close", function(event) {
             console.log("conn closed");
-            location.reload (false);
-            /*
             let content = document.getElementById("content");
             content.style.display = "none"; 
 
             content = document.getElementById("loginWindow");
             content.style.display = "block";
-            */
         });
 
         socket.addEventListener("error", function(event) {
@@ -328,41 +239,28 @@ function connect(){
     });    
 }
 
-function OutgoingMessage (msg) {
+function send(){
+    clientId = document.getElementById("client").value;
+    msg = document.getElementById("msg").value;
+    my = document.getElementById("my").innerHTML;
+
     var crypt = new JSEncrypt();
     pubKey = document.getElementById("reciverPubKey").innerHTML;
     crypt.setPublicKey(pubKey);
     var encryptedText = crypt.encrypt(msg);
-    var my = document.getElementById("my").innerHTML;
-    
-    var tb;
+
     tb  = "<tb>";
     tb += "<instance>send</instance>";
-    tb += "<id>" + SelectedRecipient.username + "</id>";
+    tb += "<id>" + clientId + "</id>";
     tb += "<msg>" + encryptedText + "</msg>";
     tb += "<mid>" + my + "</mid>";
     tb += "</tb>";
     console.log ("Wysylanie wiadomosci: " + tb);
     socket.send(tb);
-    
-    SelectedRecipient.windowElement.appendChild (
-        BuildMsgCloud (my, msg, true)
-    );
-    scrollToBottom ();
-}
 
-function send(){
-    //clientId = document.getElementById("client").value;
-    var msgField = document.getElementById("msg"); 
-    msg = msgField.value;
-    msgField.value = "";
-    msgField.focus ();
-    
-    OutgoingMessage (msg);
-
-    /*var client = document.getElementById(clientId);
+    var client = document.getElementById(clientId);
     if(client){
-        client.innerHTML += "<div class='cloud-msg'></div>";
+        client.innerHTML += "<div class='cloud-msg'><span class='cloud-msg-header'>" + my + "</span><span class='cloud-msg-content'>" + msg + "</span></div>";
         windowChat.push(clientId);
         scrollToBottom();
     }else{
@@ -372,7 +270,7 @@ function send(){
         } else {
             console.error('Element o id "messages" nie zostaÅ‚ znaleziony.');
         }
-    }*/
+    }
 }
 
 function plsKey(){
@@ -457,31 +355,20 @@ function clean(){
     });
 }
 
-function ChActiveWnd (newChat) {
-    // Zmieñ aktywne okno czatu, tak aby tylko jedno by³o widoczne naraz.
-    if (ActiveChatWindow)
-        HideElement (ActiveChatWindow);
-    ShowElement (ActiveChatWindow = newChat);
-}
-
 function getInner(clientId){
-    console.log("getInner");
+    console.log("getInner")
     document.getElementById("client").value = clientId;
-    document.getElementById("receiver").innerHTML = clientId;
     
-    ProvideChatWindow (SelectedRecipient = GetRecipient (clientId));
-    ChActiveWnd (SelectedRecipient.windowElement);
-    SignalChatRead (SelectedRecipient);
-    
-    /* windowChat.forEach(el => {
+    document.getElementById("receiver").innerHTML = clientId;     
+
+    windowChat.forEach(el => {
         console.log(el.innerHTML);
         if (clientId == el) {
             document.getElementById(el).style.display = 'block';       
         } else {
             document.getElementById(el).style.display = 'none';
         }
-    }); */
-    
+    });
     plsKey();
 }
 

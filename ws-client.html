@@ -171,6 +171,11 @@
             else
                 ShowPassword ();
         }
+        ///////////////////////////////////////////////////////////////
+        document.getElementById ("msg").onkeyup = function (event) {
+            if (event.keyCode == 13 && !event.shiftKey)
+                send ();
+        }; 
     </script>
 
 </body>
