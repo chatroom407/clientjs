@@ -239,6 +239,11 @@ input {
     line-height: 1.5;
 }
 
+.cloud-msg-content a {
+    color: aqua;
+    text-decoration: underline;
+}
+
 .cloud-msg-date {
     font-size: 90%;
     text-align: right;
