@@ -22,3 +22,9 @@ git commit -m "Read me edit2"
 git branch -M main
 git remote add origin git@github-chatroom407:chatroom407/clientjs.git
 git push -u origin main
+
+git add .
+git commit -m "Prepare to cut client to OOP"
+git branch -M main
+git remote add origin git@github-chatroom407:chatroom407/clientjs.git
+git push -u origin main
