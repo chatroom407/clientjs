@@ -32,12 +32,65 @@
     <script src="js/libs/forge.min.js"></script>        
     <script src="js/libs/crypto-js.min.js"></script>
     
+    <script src="js/Request.js"></script>
+    <script src="js/Interface.js"></script>
+    <script src="js/ClientJs.js"></script>
+
+    <!--
     <script src="js/utils.js"></script>
     <script src="js/tabactive.js"></script>
     <script src="js/unreads.js"></script>
     <script src="js/msgfmt.js"></script>
     <script src="js/gui.js"></script>
     <script src="js/client.js"></script>
+    -->
+
+    <script>
+        const client = new ClientJs()
+
+        window.onload = function() {
+            const button = document.getElementById("loginBtn");
+            button.addEventListener("click", function() {
+                client.connect() 
+            });
+
+            const buttonClients = document.getElementById("clientsBtn");
+            buttonClients.addEventListener("click", function() {
+                console.log(client.request)
+                if(client.request.socket != null){
+                    client.request.clients()
+                }
+            });
+
+            const buttonSend = document.getElementById("sendBtn");
+            buttonSend.addEventListener("click", function() {
+                console.log(client.request)
+                if(client.request.socket != null){
+                    client.request.send()
+                }
+            });
+        };
+
+        function getInner(name){
+            client.request.getInner(name);
+        }
+
+        var IsOurTabActive = true;
+
+        window.onfocus = function () {    
+            IsOurTabActive = true;
+            client.myInterface.TabActivated ();
+        };
+
+        window.onblur = function () {
+            IsOurTabActive = false;
+        };
+
+        function clean(){
+            document.getElementsByClassName("window-msg")[0].innerHTML = ""
+        }
+    </script>
+
 </head>
 <body>
     <div id="logo">
@@ -59,7 +112,7 @@
             </label>
             <label>Your nickname:
                 <div class="fieldwrapper">
-                    <input id='login' type='text' value="">
+                    <input id='login' type='text' value="abcd">
                 </div>
             </label>
             <label>Password:
@@ -69,7 +122,7 @@
                     <input id='password' type='password' value='backend219'>
                 </div>
             </label>
-            <button onclick="connect()">Log in</button>
+            <button id="loginBtn">Log in</button>
         </div>
     </div>
 
@@ -109,7 +162,7 @@
 
         <div id='window' style="display: flex; align-items: center; justify-content: center;">
             <textarea id='msg'>messag435435e</textarea>
-            <button class='button-icon' type="button" title="Send" onclick='send()' style="display: flex; align-items: center; justify-content: center;">
+            <button id='sendBtn' class='button-icon' type="button" title="Send" style="display: flex; align-items: center; justify-content: center;">
                 <i class="fas fa-paper-plane"></i>
             </button>
         </div>
@@ -125,7 +178,7 @@
 
         <div style="display: flex; justify-content: center; align-items: center;" class="col100">
             <input id='search' type='text' value='' >            
-            <button class='button-icon' type="button" title="Search Users" onclick='clients()'>
+            <button id="clientsBtn" class='button-icon' type="button" title="Search Users">
                 <i class="fas fa-search"></i> 
             </button>            
         </div>
@@ -133,6 +186,10 @@
         <div id='clients' class="col100"></div>
 
     </div>
+
+    <script type="text/javascript">
+
+    </script>
 
     <script type="text/javascript">
         var encrypt = new JSEncrypt({default_key_size: 2048});
