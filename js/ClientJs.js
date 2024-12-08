@@ -1,5 +1,3 @@
-//Shared varriable
-
 var globalPublicKeyPem = "";
 var globalPrivateKeyPem = "";
 var globalKeypair = "";
@@ -19,6 +17,9 @@ var ActiveChatWindow = "";
 var login = "";
 var password = ""
 var crypt;
+
+var ReciverPubKey = "NoNe";
+
 
 var globalMyInterface = new Interface()
 
@@ -77,10 +78,16 @@ class ClientJs {
                             continue;
                         }         
                         console.log(clientName);
-                        clientListHTML += "<button class='cli btn-clients' onclick=\"getInner('"
+
+
+                        clientListHTML += "<div class='users'>"
+                        clientListHTML += "<div class='avatar'>" + clientName[0] + "</div>"
+                        clientListHTML += "<button class='cli btn-clients' onclick=\"client.request.getInner('"
                                 + clientName + "')\">";
                         clientListHTML += clientName + "</br>";
                         clientListHTML += "</button>";
+                        clientListHTML += "</div>"
+
                     }
                     document.getElementById("clients").innerHTML = clientListHTML;                    
                     break;
@@ -93,19 +100,20 @@ class ClientJs {
                     id = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
                     msg = xmlDoc.getElementsByTagName("msg")[0].childNodes[0].nodeValue;
                     console.log("(msg): " + response);
-                    privKey = document.getElementById("myPrivKey").innerHTML;
+                    privKey = globalPrivateKeyPem;
                     crypt.setPrivateKey(privKey);
                     decryptedText = crypt.decrypt(msg);
                     
                     msgReObj = globalMyInterface.GetRecipient (id);
                     
+                    console.log(msgReObj);
                     globalMyInterface.ProvideChatWindow (msgReObj);
                     globalMyInterface.IncomingMessage (msgReObj, decryptedText);
                     break;
 
                 case ("pls"):
                     clientId = xmlDoc.getElementsByTagName("mid")[0].childNodes[0].nodeValue;
-                    myPubKey = document.getElementById("myPubKey").innerHTML;
+                    myPubKey = globalPublicKeyPem;
                     console.log("pls: " + clientId);
                     tb = "<tb>";
                     tb += "<instance>key</instance>";
@@ -117,9 +125,12 @@ class ClientJs {
                     break;
 
                 case ("key"):
+                    console.log("AAAAAAAAAAAAA:")
                     console.log(response);
                     reciverPubKey = xmlDoc.getElementsByTagName("msg")[0].childNodes[0].nodeValue;
-                    document.getElementById("reciverPubKey").innerHTML = reciverPubKey;
+                    //document.getElementById("reciverPubKey").innerHTML = reciverPubKey;
+                    console.log("AAAAAAAAAAAAA:" + reciverPubKey)
+                    ReciverPubKey = reciverPubKey
                     break;   
 
                 default:
@@ -134,18 +145,32 @@ class ClientJs {
         RecipientTable = new Array ();
         SelectedRecipient = null;
         ActiveChatWindow = null;
-        document.getElementById ("messages").innerHTML = "";
+        //document.getElementById ("messages").innerHTML = "";
         
         url = document.getElementById('url').value;
         port = document.getElementById('port').value;
         MyUsername = login = document.getElementById('login').value;
-        password = document.getElementById('password').value;        
+        password = document.getElementById('password').value; 
         
-        let content = document.getElementById("content");
-        content.style.display = "block"; 
-    
-        content = document.getElementById("loginWindow");
+        let content = document.getElementById("loginWindow");
         content.style.display = "none";
+
+        content = document.getElementsByClassName("container")[0];
+        content.style.display = "flex";   
+
+        content = document.getElementById("particlesCanvas");
+        content.style.display = "none";   
+
+
+        /*
+        function die(message) {
+            throw new Error(message || "Execution stopped");
+        }
+        
+        console.log("Kod przed die()");
+        die("Zatrzymano kod!");
+        console.log("Kod po die()");
+        */
     
         this.request.getServerKey()
         .then(text => {
@@ -196,7 +221,9 @@ class ClientJs {
             const passwordEncrypted = encryptAES(password, decryptedMessageAesKey).toString();
             const loginEncrypted    = encryptAES(login, decryptedMessageAesKey).toString();
             let ws = "ws://" + url + ":" + port + "?room=" + encodeURIComponent(passwordEncrypted) + "&session=" + encodeURIComponent(session) + "&login=" + encodeURIComponent(loginEncrypted);
+
             //ws = "wss://enlightenment.xaa.pl:443?room=" + encodeURIComponent(passwordEncrypted) + "&session=" + encodeURIComponent(session);
+
             console.log(ws) 
 
             socket = new WebSocket(ws);
@@ -210,7 +237,7 @@ class ClientJs {
     
             console.log("login END");
     
-            document.getElementById("you").innerHTML = login;
+            //document.getElementById("you").innerHTML = login;
             globalLogin = login;
     
             this.loop(socket)

@@ -225,14 +225,16 @@ class Interface{
         return cl;
     }
 
+
     IncomingMessage (recipient, msgText) {
         
         console.log ("Przyszla odszyfrowania wiadomosc");
         console.log ("Od: " + recipient.username);
         console.log ("Tresc: " + msgText);
     
+        let cl = this.BuildMsgCloud (recipient.username, msgText, false)
         recipient.windowElement.appendChild (
-            this.BuildMsgCloud (recipient.username, msgText, false)
+            cl
         );
         this.scrollToBottom ();
         
@@ -269,7 +271,7 @@ class Interface{
             foundRec.knownPubKey = false;
             
             foundRec.isViewedNow = function () {
-                return IsOurTabActive && SelectedRecipient == this;
+                return SelectedRecipient == this;
             };
         }
         return foundRec;

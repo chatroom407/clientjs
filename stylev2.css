@@ -1,0 +1,456 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #121212;
+    color: #ffffff;
+    height: 100%;
+    display: flex;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;    
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+}
+
+
+
+
+
+
+
+#loginWindow {
+    background-color: block; 
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+    margin: 20px;
+    flex: 1;
+    max-width: 400px;
+}
+
+#loginWindow label {
+    display: block;
+    padding: 8px 0;
+    color: #d1d1d1;
+    text-align: left;
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.container-login {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 15px;
+}
+
+.text-container {
+    flex: 1;
+    text-align: center;
+    color: #f0f0f0;
+    font-size: 16px;
+    font-weight: bold;
+    font-family: 'Roboto', sans-serif;
+}
+
+#loginBtn {
+    background-color: #C0C0C0;
+    padding: 12px 20px;
+    margin-top: 20px;
+    text-align: center;
+    border: none;
+    cursor: pointer;
+    color: #333333;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+}
+
+#loginBtn:hover {
+    background-color: #C0C0C0;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 300px; 
+    max-width: 100%; 
+    border: none;
+    border-bottom: 2px solid #555; 
+    background: transparent;
+    padding: 8px 0;
+    outline: none;
+    font-size: 16px;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    border-bottom: 2px solid #C0C0C0; 
+}
+
+@media (max-width: 768px) {
+    #loginWindow {
+        padding: 15px;
+        margin: 10px;
+        max-width: 90%;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        max-width: none;
+        font-size: 14px;
+    }
+
+    #loginBtn {
+        width: 100%;
+        padding: 12px 0;
+    }
+
+    .text-container {
+        font-size: 14px;
+    }
+
+    canvas {
+        width: 100%;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+/* Chat */
+.container {
+    display: none;
+    flex: 1;
+    height: 100%;
+}
+
+.left-column {
+    background-color: #1f1f1f;
+    padding: 10px;
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.right-column {
+    background-color: #222222;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #333333;
+    width: 100%;
+}
+
+.settings-button {
+    cursor: pointer;
+    user-select: none;
+}
+
+.chat-area {
+    flex: 1;
+    background-color: #1a1a1a;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.input-section {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #333333;
+    width: 100%;
+}
+
+.input-box {
+    flex: 1;
+    background-color: #555555;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-left: 10px;
+}
+
+.control-button {
+    background-color: #444444;
+    color: #ffffff;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.control-button:hover {
+    background-color: #555555;
+}
+
+#nickname {
+    text-align: center;
+    width: 100%;
+    padding: 5px;        
+    font-weight: bold;
+}
+
+#my{
+
+}
+
+.search-bar {
+    display: flex;
+    margin: 5px;
+    border-bottom: 1px solid #A9A9A9;
+    padding-bottom: 10px;
+}
+
+.search-input {
+    background-color: #555555;
+    padding: 10px;
+    margin: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.search-confirm {
+    margin: 5px;
+    width: 50px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+}
+
+.search-confirm img:hover {
+    transform: scale(1.2);
+    transition: transform 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+input {
+    width: 100%;
+    background-color: #555555;
+    color: #ffffff;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 16px;
+    outline: none;
+    box-sizing: border-box;
+}
+
+textarea{
+    background-color: #555555;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.settings-bar{
+    display: flex;
+}
+
+.icon{
+    padding: 5px;
+}
+
+.icon:hover{
+    transform: scale(1.2);
+    transition: transform 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+
+
+
+
+
+
+.text-container {
+    display: flex;
+    height: 200px;
+    perspective: 1000px;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.animated-text {
+    font-size: 5rem; 
+    color: #fff;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+    transform: rotateY(0deg);
+    animation: spin3D 3s infinite ease-in-out;
+    display: inline-block;
+}
+
+/* Efekt animacji */
+@keyframes spin3D {
+    0% {
+        transform: rotateY(0deg) translateZ(0);
+    }
+    25% {
+        transform: rotateY(90deg) translateZ(20px);
+    }
+    50% {
+        transform: rotateY(180deg) translateZ(40px);
+    }
+    75% {
+        transform: rotateY(270deg) translateZ(20px);
+    }
+    100% {
+        transform: rotateY(360deg) translateZ(0);
+    }
+}
+
+
+
+
+
+canvas {
+    background: linear-gradient(to bottom, #0d0d0d, #111);
+}
+
+
+
+
+
+
+
+
+
+
+/* Avatar wygląd */
+.users {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #333333;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.cli.btn-clients {
+    background-color: transparent;
+    color: white;
+    text-decoration: underline;
+    text-decoration-color: #C0C0C0;
+    border: none;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.cli.btn-clients:hover {
+    background-color: #444444;
+}
+
+
+
+
+
+/* Clouds */
+
+.cloud-msg {
+    padding: 12px;
+    border-radius: 12px;
+    max-width: 60%;
+    margin: 6px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #2c2c2c, #3d3d3d);
+}
+
+.cloud-sent {
+    background-color: #555;
+    align-self: flex-end;
+    color: #ffffff;
+    border: 1px solid #333;
+}
+
+.cloud-received {
+    background: linear-gradient(135deg, #1a1a1a, #222222);
+    align-self: flex-start;
+    color: #ffffff;
+    border: 1px solid #555;
+}
+
+.cloud-msg-header {
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #e0e0e0;
+}
+
+.cloud-msg-content {
+    word-wrap: break-word;
+    color: #d9d9d9;
+    font-size: 1em;
+}
+
+.cloud-msg-date {
+    font-size: 0.9em;
+    color: #aaaaaa;
+    margin-top: 5px;
+    text-align: right;
+}
+

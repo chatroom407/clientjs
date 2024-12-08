@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Enl</title>
+
+    <link rel="stylesheet" href="stylev2.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <script src='js/libs/jsencrypt.min.js'></script>
+    <script src="js/libs/prime.worker.min.js"></script>     
+    <script src="js/libs/forge.min.js"></script>        
+    <script src="js/libs/crypto-js.min.js"></script>
+    
+    <script src="js/Request.js"></script>
+    <script src="js/Interface.js"></script>
+    <script src="js/ClientJs.js"></script>
+    <script>
+        const client = new ClientJs()
+
+        window.onload = function() {
+            const button = document.getElementById("loginBtn");
+            button.addEventListener("click", function() {  
+                client.connect()             
+            });
+
+
+            const buttonClients = document.getElementById("search");
+            buttonClients.addEventListener("click", function() {
+                console.log(client.request)
+                if(client.request.socket != null){
+                    client.request.clients()
+                }
+            });
+
+            const buttonSend = document.getElementById("sendBtn");
+            buttonSend.addEventListener("click", function() {
+                console.log(client.request)
+                if(client.request.socket != null){
+                    client.request.send()
+                }
+            });
+
+        };
+    </script>
+</head>
+<body>
+
+    <canvas id="particlesCanvas"></canvas>    
+
+    <div class="container-login">
+        <div class="text-container">
+            <h1 class="animated-text">ENL</h1>
+        </div>
+
+        <div id='loginWindow'>
+            <div style="text-align:center">
+                <label>Server:</label>
+                <div class="fieldwrapper">
+                    <input id='url' type='text' value='193.93.89.68' >
+                </div>    
+
+                <label>Server port:</label>
+                <div class="fieldwrapper">
+                    <input id='port' type='text' value='8081'>
+                </div>                
+
+                <label>Your nickname:</label>
+                <div class="fieldwrapper">
+                    <input id='login' type='text' value="abcd">
+                </div>
+
+                <label>Password:</label>
+                <a id="pwshowlink" href="javascript:ClickedPwToggle()"
+                    style="color:orange;font-weight:bold"></a>
+                <div class="fieldwrapper">
+                    <input id='password' type='password' value='backend219'>
+                </div>                
+                <button id="loginBtn">Log in</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="animation.js"></script>
+
+    <div class="container">
+        <div class="left-column">
+            <div id="nickname">
+                Hello User - <span id="my">Loading ...</span>
+            </div>
+            <div class="search-bar">
+                <input class="search-input" type="text" />
+                <div class="search-confirm" id="search"><img src="icons/search-32w.png" /></div>
+            </div>
+            <div class="chats">
+                <div id="clients"></div>
+            </div>
+        </div>
+
+        <div class="right-column">
+            <div class="top-bar">
+                <div></div>
+                <div id="receiver">...</div>
+                <div class="settings-bar">
+                    <div class="icon call-button"><img src="icons/call-32w.png"/></div>
+                    <div class="icon video-button"><img src="icons/camera-32w.png"/></div>
+                    <div class="icon settings-button"><img src="icons/menu-32w.png" /></div>
+                </div>
+            </div>
+
+            <div class="chat-area" id="messages"></div>
+
+            <div class="input-section">
+                <textarea class="input-box" type="text" id="msg"></textarea>
+                <div class="controls">
+                    <div id="sendBtn" class="control-button">&lt;</div>
+                    <div class="control-button">+</div>
+                </div>
+            </div>            
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+

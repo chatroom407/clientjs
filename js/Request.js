@@ -28,7 +28,8 @@ class Request{
     
     OutgoingMessage (msg) {
         var crypt = new JSEncrypt();
-        var pubKey = document.getElementById("reciverPubKey").innerHTML;
+        var pubKey = ReciverPubKey; ///document.getElementById("reciverPubKey").innerHTML;
+        console.log("DSUFS:  " + pubKey)
         crypt.setPublicKey(pubKey);
         var encryptedText = crypt.encrypt(msg);
         var my = document.getElementById("my").innerHTML;
@@ -55,18 +56,20 @@ class Request{
         msgField.value = "";
         msgField.focus ();
         this.OutgoingMessage (msg);
+        console.log("send");
     }
     
-    plsKey(){
+    plsKey(){        
         let myId  = document.getElementById("my").innerHTML;
-        let clientId = document.getElementById("client").value;
+        let clientId = document.getElementById("receiver").innerHTML;
         let tb  = "<tb>";
         tb += "<instance>pls_key</instance>";
         tb += "<id>" + clientId + "</id>";
         tb += "<msg>" + "" + "</msg>";
         tb += "<mid>" + myId + "</mid>";
         tb += "</tb>";
-        socket.send(tb);
+        console.log(tb)
+        socket.send(tb);        
     }
     
     async getServerKey() {
@@ -116,13 +119,14 @@ class Request{
     }
     
     getInner(clientId){
-        console.log("getInner");
-        document.getElementById("client").value = clientId;
+        console.log("getInner START");
+        //document.getElementById("client").value = clientId;
         document.getElementById("receiver").innerHTML = clientId;
         
         this.myInterface.ProvideChatWindow (SelectedRecipient = this.myInterface.GetRecipient (clientId));
         this.myInterface.ChActiveWnd (SelectedRecipient.windowElement);
         this.myInterface.xunreads.SignalChatRead (SelectedRecipient);
         this.plsKey();
+        console.log("getInner END");
     }
 }
