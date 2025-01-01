@@ -46,3 +46,9 @@ git commit -m "Enl Look"
 git branch -M main
 git remote add origin git@github-chatroom407:chatroom407/clientjs.git
 git push -u origin main
+
+git add .
+git commit -m "First good call"
+git branch -M main
+git remote add origin git@github-chatroom407:chatroom407/clientjs.git
+git push -u origin main

@@ -15,9 +15,20 @@
     <script src="js/libs/forge.min.js"></script>        
     <script src="js/libs/crypto-js.min.js"></script>
     
+
+    <script src="js/Pipe.js"></script>
+    <script src="js/MediaSource.js"></script>    
+    <script src="js/Recoder.js"></script>  
+
+
+    <script src="js/Call.js"></script>
     <script src="js/Request.js"></script>
     <script src="js/Interface.js"></script>
+
     <script src="js/ClientJs.js"></script>
+</head>
+<body>
+
     <script>
         const client = new ClientJs()
 
@@ -44,10 +55,14 @@
                 }
             });
 
+            const fileDialog = new FileDialog('file-btn', 'result');
         };
+        
+    
+    client.audioChunk
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
     </script>
-</head>
-<body>
 
     <canvas id="particlesCanvas"></canvas>    
 
@@ -102,26 +117,157 @@
 
         <div class="right-column">
             <div class="top-bar">
-                <div></div>
-                <div id="receiver">...</div>
                 <div class="settings-bar">
                     <div class="icon call-button"><img src="icons/call-32w.png"/></div>
                     <div class="icon video-button"><img src="icons/camera-32w.png"/></div>
+                </div>
+                <div id="receiver">...</div>
+                <div class="settings-bar">                    
+                    <div class="icon settings-button" id="search2"><img src="icons/search-32w.png"/></div>
                     <div class="icon settings-button"><img src="icons/menu-32w.png" /></div>
                 </div>
             </div>
 
             <div class="chat-area" id="messages"></div>
 
-            <div class="input-section">
+            <div class="file-space">
+                <span id="result"></span>
+                <button class="file-btn" id="file-accept-btn">accept</button>
+                <button class="file-btn" id="file-cancel-btn">cancel</button>
+            </div>
+
+            <div class="input-section">                
                 <textarea class="input-box" type="text" id="msg"></textarea>
                 <div class="controls">
                     <div id="sendBtn" class="control-button">&lt;</div>
-                    <div class="control-button">+</div>
+                    <div id="file-btn" class="control-button">+</div>
                 </div>
             </div>            
         </div>
     </div>
+
+
+    <script>
+        document.querySelector('#search2').addEventListener('click', function () {
+            const rightColumn = document.querySelector('.right-column');
+            const leftColumn = document.querySelector('.left-column');
+            
+            if (rightColumn && leftColumn) {
+                rightColumn.style.display = 'none';
+                leftColumn.style.display = 'block';
+                leftColumn.style.width = '100%';
+            }            
+        });
+    </script>
+    
+    <script>
+    document.querySelector('.call-button').addEventListener('click', function () {
+        console.log("CALL ON");
+        (async () => {
+            const sendDataToServer = async (audioChunk) => {
+                console.log("Przesyłanie danych audio:", audioChunk);
+
+                const arrayBuffer = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = (error) => reject(error);
+                    reader.readAsArrayBuffer(audioChunk);
+                });
+
+                try {
+                    await client.request.call(arrayBuffer);
+                    console.log(arrayBuffer)
+                    
+                    console.log("Dane audio zostały wysłane.");
+                } catch (error) {
+                    console.error("Błąd podczas wysyłania danych:", error);
+                }
+            };
+
+            const audioStreamer = new AudioStreamer(sendDataToServer);
+
+            await audioStreamer.start();
+            console.log("Rozpoczęto nagrywanie");
+
+            setTimeout(async () => {
+                await audioStreamer.stop();
+                console.log("Nagrywanie zakończone");
+            }, 15000);
+        })();
+    });
+    </script>
+
+
+
+
+
+
+        <script>
+/*            
+            document.querySelector('.call-button').addEventListener('click', function () {
+                console.log("CALL ON");
+                (async () => {
+    // Funkcja do wysyłania danych audio
+    const sendDataToServer = async (audioChunk) => {
+        console.log("Przesyłanie danych audio:", audioChunk);
+
+        const arrayBuffer = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = (error) => reject(error);
+            reader.readAsArrayBuffer(audioChunk);
+        });
+
+        // Funkcja do dzielenia danych na kawałki i wysyłania ich
+        const sendChunks = async (arrayBuffer) => {
+            const chunkSize = 1024;  // Rozmiar każdego kawałka (w bajtach)
+            let offset = 0;          // Pozycja w buforze
+
+            // Funkcja do wysyłania kawałków
+            const sendChunk = async (chunk, chunkId) => {
+                try {
+                    await client.request.call(chunk);  // Wywołanie wysyłania dla kawałka
+                    console.log(`Wysłano kawałek ${chunkId} o rozmiarze ${chunk.byteLength} bajtów.`);
+                } catch (error) {
+                    console.error(`Błąd podczas wysyłania kawałka ${chunkId}:`, error);
+                }
+            };
+
+            // Dzielimy ArrayBuffer na mniejsze kawałki i wysyłamy je po kolei
+            while (offset < arrayBuffer.byteLength) {
+                const chunk = arrayBuffer.slice(offset, offset + chunkSize);
+                await sendChunk(chunk, offset / chunkSize);  // Wywołanie dla każdego kawałka
+                offset += chunkSize;
+            }
+
+            console.log("Wszystkie kawałki zostały wysłane.");
+        };
+
+        try {
+            console.log("Dane audio do wysyłki:", arrayBuffer);
+            console.log(new Uint8Array(arrayBuffer).slice(0, 10)); // Podgląd pierwszych 10 bajtów
+
+            // Wywołanie funkcji do wysyłania kawałków
+            await sendChunks(arrayBuffer);
+
+            console.log("Dane audio zostały wysłane.");
+        } catch (error) {
+            console.error("Błąd podczas wysyłania danych:", error);
+        }
+    };
+
+    // Rozpoczynamy nagrywanie
+    const audioStreamer = new AudioStreamer(sendDataToServer);
+    await audioStreamer.start();
+    console.log("Rozpoczęto nagrywanie");
+
+    setTimeout(async () => {
+        await audioStreamer.stop();
+        console.log("Nagrywanie zakończone");
+    }, 50000);  // Nagrywanie przez 50 sekund
+})();
+            });*/
+            </script>
 </body>
 </html>
 

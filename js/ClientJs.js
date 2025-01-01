@@ -23,34 +23,94 @@ var ReciverPubKey = "NoNe";
 
 var globalMyInterface = new Interface()
 
+var CurrentFile = "";
+
 class ClientJs {
     constructor() {        
         //class
+        this.pipe = new Pipe();
+
         this.myInterface = globalMyInterface
         this.request   = new Request(this.myInterface)
         //this.request   = new Request()
+        this.audioBlob = ""
+        this.audioUrl = ""
+        this.audio = ""        
+        this.chunkId = 0;
+        this.audioChunks = [];
+        this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        this.audioUrl  = URL.createObjectURL(this.audioBlob);
+        this.audio     = new Audio(this.audioUrl);
+        this.isPlaying = false;
+        this.audioPlayingTime = 0;
+
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.source = this.audioContext.createBufferSource();
+        this.source.connect(this.audioContext.destination);
+        //this.buffer = [];
+        
+        const tenMB = 10 * 1024 * 1024;
+        this.buffer = new Uint8Array(tenMB)
+
+        this.audioChunksBuffer = [];
+        this.audioPlayer = new AudioPlayer();        
+        this.mediaHandler = new MediaSourceHandler();
     }
 
     defliveryKey(){
         return "empty"
     }
 
+    loadAndPlayChunk(audioChunk) {
+        if (!(audioChunk instanceof ArrayBuffer)) {
+            console.error('Dane audio nie są typu ArrayBuffer');
+            //return;
+        }
+        this.audioContext.decodeAudioData(audioChunk)
+            .then(audioBuffer => {
+            
+            this.source.buffer = audioBuffer;             
+
+            this.source.onended = () => {
+                console.log('Fragment zakończony');
+            };
+            })
+            .catch(error => {
+                console.error('Błąd przy dekodowaniu audio:', error);
+            });
+    }
+
+    concatenateAudioBuffers(bufferArray) {
+        const totalLength = bufferArray.reduce((acc, buffer) => acc + buffer.length, 0);
+        const combinedBuffer = new Uint8Array(totalLength);
+    
+        let offset = 0;
+        bufferArray.forEach(buffer => {
+            combinedBuffer.set(buffer, offset);
+            offset += buffer.length;
+        });
+    
+        return combinedBuffer.buffer;
+    }
+
     loop(socket){
-        socket.addEventListener("message", function(event) {
+        socket.addEventListener("message", (event) => {
+            
             let response = event.data; 
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(response, "text/xml" );
 
             let instance = xmlDoc.getElementsByTagName("instance")[0].childNodes[0].nodeValue;
-            console.log ("Otrzymano wiadomosc: " + response);
-            console.log("Typ wiadomosci: " + instance);
+            if(instance != "call"){
+                console.log ("Otrzymano wiadomosc: " + response);
+                console.log("Typ wiadomosci: " + instance);
+            }
 
             let clientListHTML = ""
             let ids = null
             let loginTemp = ""
             let myId = null
             let i = 0
-            let clientName = ""
             let id = 0
             let msg = ""
             let msgReObj = ""
@@ -60,6 +120,8 @@ class ClientJs {
             let clientId = 0
             let tb = ""
             let myPubKey = ""
+            let decryptedCall = ""
+            let untransformArrayBuffer = ""
             
             switch (instance){
                 case ("you"):
@@ -111,6 +173,134 @@ class ClientJs {
                     globalMyInterface.IncomingMessage (msgReObj, decryptedText);
                     break;
 
+                case "call":
+                    const id = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
+                    const msg = xmlDoc.getElementsByTagName("msg")[0].childNodes[0].nodeValue;
+                
+                    try {
+                        if (!msg) {
+                            console.error("Brak danych w wiadomości.");
+                            break;
+                        }
+                
+                        untransformArrayBuffer = this.pipe.untransform(msg)
+                        this.audioChunks[this.chunkId] = untransformArrayBuffer;
+                        this.chunkId += 1;
+                        this.mediaHandler.addAudioFragment(untransformArrayBuffer);
+
+                    } catch (error) {
+                        console.error("Wystąpił błąd w obsłudze 'call':", error);
+                    }
+                    break;
+
+                /*
+                case "call":
+                    const id = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
+                    const msg = xmlDoc.getElementsByTagName("msg")[0].childNodes[0].nodeValue;
+                
+                    try {
+                        if (!msg) {
+                            console.error("Brak danych w wiadomości.");
+                            break;
+                        }
+                
+                        const base64String = msg;
+                        const binaryString = atob(base64String);
+                        const byteArray = new Uint8Array(binaryString.length);
+                
+                        let j 
+                        if(this.buffer.length == 0){
+                            j = 0;
+                        }else{
+                            j = this.buffer.length
+                        }
+
+                        for (let i = 0; i < binaryString.length; i++) {
+                            //byteArray[i] = binaryString.charCodeAt(i);
+                            this.buffer[j]  = binaryString.charCodeAt(i);
+                            j++;
+                        }
+
+                        this.audioChunks[this.chunkId] = byteArray;
+
+                        this.chunkId += 1;
+
+                        //this.buffer = this.loadAndPlayChunk(byteArray)
+
+                        this.loadAndPlayChunk(this.buffer)                        
+                        if(this.isPlaying == false){
+                            this.source.start();
+                            this.isPlaying = true;
+                        }
+
+
+                    } catch (error) {
+                        console.error("Wystąpił błąd w obsłudze 'call':", error);
+                    }
+                    break;
+                */
+
+                /*
+                case ("call"):
+                    id = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
+                    msg = xmlDoc.getElementsByTagName("msg")[0].childNodes[0].nodeValue;
+                    privKey = globalPrivateKeyPem;
+
+                    decryptedCall = msg
+                    const base64String = decryptedCall;
+                    const binaryString = atob(base64String);
+                    let byteArray = new Uint8Array(binaryString.length);
+
+                    for (let i = 0; i < binaryString.length; i++) {
+                        byteArray[i] = binaryString.charCodeAt(i);
+                    }
+
+
+                    if (byteArray instanceof ArrayBuffer) {
+                        //console.log('ArrayBuffer length:', byteArray.byteLength);
+                    } else {
+                        console.error('decryptedCall nie jest ArrayBuffer!');
+                    }
+
+                    if (byteArray instanceof Uint8Array) {
+                        //console.log('Uint8Array length:', byteArray.length);
+                    }
+                    
+                    try {
+                        //console.log(this.audioChunks);
+
+                        
+                        this.audioChunks[this.chunkId] = byteArray; 
+                        this.chunkId += 1;
+                    
+                        
+                        if (this.audio.currentTime > 0 && this.isPlaying) {
+                            this.audioPlayingTime = this.audio.currentTime;
+                            //this.audio.pause(); // Zatrzymujemy, aby dodać nowe kawałki
+                        }
+                    
+                        this.audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                    
+                        //this.audioUrl = URL.createObjectURL(this.audioBlob);
+                        //this.audio = new Audio(this.audioUrl);
+
+                        this.audio.src = URL.createObjectURL(this.audioBlob);
+                    
+                        if (this.audioPlayingTime > 0) {
+                            this.audio.currentTime = this.audioPlayingTime; 
+                            console.log("Time: " + this.audioPlayingTime)
+                        }                        
+                    
+                        this.isPlaying = true;
+                        this.audio.play().catch((error) => {
+                            console.error("Błąd podczas odtwarzania audio:", error);
+                        });
+                    
+                    } catch (error) {
+                        console.error("Wystąpił błąd:", error);
+                    }                                    
+                    break;*/
+
                 case ("pls"):
                     clientId = xmlDoc.getElementsByTagName("mid")[0].childNodes[0].nodeValue;
                     myPubKey = globalPublicKeyPem;
@@ -141,6 +331,25 @@ class ClientJs {
     }
 
     connect(){
+
+        function applyStyles() {
+            const mediaQuery = window.matchMedia("(max-width: 1050px)");
+            const textContainer = document.querySelector('.container-login');
+            
+            if (mediaQuery.matches) {
+                if (textContainer) {
+                    textContainer.style.display = 'none';
+                }
+            } else {
+                if (textContainer) {
+                    textContainer.style.display = '';
+                }
+            }
+        }
+        window.addEventListener('resize', applyStyles);
+        applyStyles();
+
+
         this.myInterface.unreads.InitUnreadModule ();
         RecipientTable = new Array ();
         SelectedRecipient = null;

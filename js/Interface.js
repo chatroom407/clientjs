@@ -299,3 +299,46 @@ class Interface{
         this.utils.ShowElement (ActiveChatWindow = newChat);
     }  
 }
+
+
+
+class FileDialog {
+    constructor(triggerButtonId, resultElementId, resultContainerId) {        
+        this.triggerButton = document.getElementById(triggerButtonId);
+        this.resultElement = document.getElementById(resultElementId);
+        this.resultContainer = document.getElementById(resultContainerId);
+        this.maxFileSize = 25 * 1024 * 1024; // 25 MB w bajtach
+        this.initialize();
+    }
+
+    initialize() {
+        this.triggerButton.addEventListener('click', () => this.openFileDialog());
+    }
+
+    openFileDialog() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+
+        input.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > this.maxFileSize) {
+                    this.resultElement.textContent = `Plik jest za duży. Maksymalny rozmiar to 25 MB.`;
+                } else {
+                    this.resultElement.textContent = `Wybrano plik: ${file.name}`;
+                    CurrentFile = file;
+
+                    const fileBtns = document.getElementsByClassName('file-btn'); 
+                    for (let i = 0; i < fileBtns.length; i++) {
+                        fileBtns[i].style.display = 'inline-block';
+                    }
+                }
+            } else {
+                this.resultElement.textContent = 'Nie wybrano żadnego pliku';
+            }
+        });
+
+        input.click();
+    }
+}

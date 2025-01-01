@@ -4,6 +4,7 @@ class Request{
 
     constructor(myInterface) {
         this.myInterface = myInterface
+        this.pipe = new Pipe()
     }
      
     setSocket(socket){
@@ -48,6 +49,52 @@ class Request{
             this.myInterface.BuildMsgCloud (my, msg, true)
         );
         this.myInterface.scrollToBottom ();
+    }
+
+            // Funkcja do unikania niebezpiecznych znaków XML
+            escapeXML(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&apos;");
+            }
+
+    call(chunk){
+        var crypt = new JSEncrypt();
+        var pubKey = ReciverPubKey;
+        console.log("DSUFS:  " + pubKey)
+        crypt.setPublicKey(pubKey);
+        //var encryptedText = crypt.encrypt(chunk);
+
+        
+        var encryptedText = chunk;
+        encryptedText = this.pipe.transform(chunk);
+
+        /*
+        const byteArray = new Uint8Array(chunk);
+        const base64String = btoa(String.fromCharCode(...byteArray));
+        encryptedText = base64String;*/
+
+        var my = document.getElementById("my").innerHTML;
+
+        var tb;
+        tb  = "<tb>";
+        tb += "<instance>call</instance>";
+        tb += "<id>" + SelectedRecipient.username + "</id>";
+        tb += "<msg>" + encryptedText + "</msg>";
+        tb += "<mid>" + my + "</mid>";
+        tb += "</tb>";
+
+        console.log("Call: " + tb);
+        socket.send(tb);
+
+        /*
+        SelectedRecipient.windowElement.appendChild(
+            this.myInterface.BuildMsgCloud(my, encryptedText, true)
+        );
+        this.myInterface.scrollToBottom();*/
     }
     
     send(){
@@ -119,6 +166,31 @@ class Request{
     }
     
     getInner(clientId){
+        const rightColumn = document.querySelector('.right-column');
+        const leftColumn = document.querySelector('.left-column');
+
+        const usersButtons = document.querySelectorAll('.cli');
+
+        if (usersButtons.length > 0) {
+            usersButtons.forEach(button => {
+                const usersClickHandler = function () {
+                    const rightColumn = document.querySelector('.right-column');
+                    const leftColumn = document.querySelector('.left-column');
+        
+                    if (rightColumn && leftColumn) {
+                        rightColumn.style.display = '';
+                        leftColumn.style.display = 'none';
+                        leftColumn.style.width = '20%';
+                    }
+        
+                    button.removeEventListener('click', usersClickHandler);
+                };
+        
+                button.addEventListener('click', usersClickHandler);
+            });
+        }
+
+
         console.log("getInner START");
         //document.getElementById("client").value = clientId;
         document.getElementById("receiver").innerHTML = clientId;
