@@ -99,59 +99,75 @@ class ClientJs {
             let response = event.data; 
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(response, "text/xml" );
+            
+            function getXmlElementValue (name) {
+                return xmlDoc.getElementsByTagName (name)[0]
+                        .childNodes[0].nodeValue;
+            }
 
-            let instance = xmlDoc.getElementsByTagName("instance")[0].childNodes[0].nodeValue;
+            let instance = getXmlElementValue ("instance");
             if(instance != "call"){
                 console.log ("Otrzymano wiadomosc: " + response);
                 console.log("Typ wiadomosci: " + instance);
             }
 
-            let clientListHTML = ""
-            let ids = null
-            let loginTemp = ""
-            let myId = null
+            /* Zmienne przeniesione do blokÛw obs≥ugujπcych konkretne rodzaje
+            wiadomoúci, w ktÛrych sπ uøywane. */
+            //let clientListHTML = ""
+            //let ids = null
+            //let loginTemp = ""
+            //let myId = null
+            //let msgReObj = ""
+            //let privKey = ""
+            //let decryptedText = ""
+            //let clientId = 0
+            //let tb = ""
+            //let myPubKey = ""
             let i = 0
             let id = 0
             let msg = ""
-            let msgReObj = ""
-            let reciverPubKey = ""
-            let privKey = ""
-            let decryptedText = ""
-            let clientId = 0
-            let tb = ""
-            let myPubKey = ""
+            //let reciverPubKey = ""
             let decryptedCall = ""
             let untransformArrayBuffer = ""
             
             switch (instance){
                 case ("you"):
-                    myId = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
-                    document.getElementById("my").innerHTML = myId;
+                    {
+                        let myId;
+                        myId = getXmlElementValue ("id");
+                        document.getElementById("my").innerHTML = myId;
+                    }
                     break;
 
                 case ("clients"):
+                    {
+                        let ids, loginTemp, clientListHTML;
+                        let i;
+                        ids = xmlDoc.getElementsByTagName("id");
+                        loginTemp = globalLogin;
 
-                    ids = xmlDoc.getElementsByTagName("id");
-                    loginTemp = globalLogin;
-
-                    for (i = 0; i < ids.length; i++) {
-                        let clientName = ids[i].childNodes[0].nodeValue;
-                        if(clientName == loginTemp){
-                            continue;
-                        }         
-                        console.log(clientName);
+                        clientListHTML = "";
+                        for (i = 0; i < ids.length; i++) {
+                            let clientName = ids[i].childNodes[0].nodeValue;
+                            if(clientName == loginTemp){
+                                continue;
+                            }         
+                            console.log(clientName);
 
 
-                        clientListHTML += "<div class='users'>"
-                        clientListHTML += "<div class='avatar'>" + clientName[0] + "</div>"
-                        clientListHTML += "<button class='cli btn-clients' onclick=\"client.request.getInner('"
-                                + clientName + "')\">";
-                        clientListHTML += clientName + "</br>";
-                        clientListHTML += "</button>";
-                        clientListHTML += "</div>"
+                            clientListHTML += "<div class='users'>"
+                            clientListHTML += "<div class='avatar'>" +
+                                    clientName[0] + "</div>";
+                            clientListHTML += "<button class='cli btn-clients' " +
+                                    "onclick=\"client.request.getInner('" +
+                                    clientName + "')\">";
+                            clientListHTML += clientName + "</br>";
+                            clientListHTML += "</button>";
+                            clientListHTML += "</div>"
 
+                        }
+                        document.getElementById("clients").innerHTML = clientListHTML;
                     }
-                    document.getElementById("clients").innerHTML = clientListHTML;                    
                     break;
 
                 case ("send"):
@@ -159,37 +175,43 @@ class ClientJs {
                     break;
 
                 case ("msg"):
-                    id = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
-                    msg = xmlDoc.getElementsByTagName("msg")[0].childNodes[0].nodeValue;
-                    console.log("(msg): " + response);
-                    privKey = globalPrivateKeyPem;
-                    crypt.setPrivateKey(privKey);
-                    decryptedText = crypt.decrypt(msg);
-                    
-                    msgReObj = globalMyInterface.GetRecipient (id);
-                    
-                    console.log(msgReObj);
-                    globalMyInterface.ProvideChatWindow (msgReObj);
-                    globalMyInterface.IncomingMessage (msgReObj, decryptedText);
+                    {
+                        let id, msg, privKey;
+                        let decryptedText, msgReObj;
+                        id = getXmlElementValue ("id");
+                        msg = getXmlElementValue ("msg");
+                        console.log("(msg): " + response);
+                        privKey = globalPrivateKeyPem;
+                        crypt.setPrivateKey(privKey);
+                        decryptedText = crypt.decrypt(msg);
+                
+                        msgReObj = globalMyInterface.GetRecipient (id);
+                
+                        console.log(msgReObj);
+                        globalMyInterface.ProvideChatWindow (msgReObj);
+                        globalMyInterface.IncomingMessage (msgReObj, decryptedText);
+                    }
                     break;
 
                 case "call":
-                    const id = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
-                    const msg = xmlDoc.getElementsByTagName("msg")[0].childNodes[0].nodeValue;
+                    {
+                        const id = getXmlElementValue ("id");
+                        const msg = getXmlElementValue ("msg");
                 
-                    try {
-                        if (!msg) {
-                            console.error("Brak danych w wiadomo≈õci.");
-                            break;
-                        }
+                        try {
+                            if (!msg) {
+                                console.error("Brak danych w wiadomo≈õci.");
+                                break;
+                            }
                 
-                        untransformArrayBuffer = this.pipe.untransform(msg)
-                        this.audioChunks[this.chunkId] = untransformArrayBuffer;
-                        this.chunkId += 1;
-                        this.mediaHandler.addAudioFragment(untransformArrayBuffer);
+                            untransformArrayBuffer = this.pipe.untransform(msg)
+                            this.audioChunks[this.chunkId] = untransformArrayBuffer;
+                            this.chunkId += 1;
+                            this.mediaHandler.addAudioFragment(untransformArrayBuffer);
 
-                    } catch (error) {
-                        console.error("WystƒÖpi≈Ç b≈ÇƒÖd w obs≈Çudze 'call':", error);
+                        } catch (error) {
+                            console.error("WystƒÖpi≈Ç b≈ÇƒÖd w obs≈Çudze 'call':", error);
+                        }
                     }
                     break;
 
@@ -197,17 +219,17 @@ class ClientJs {
                 case "call":
                     const id = xmlDoc.getElementsByTagName("id")[0].childNodes[0].nodeValue;
                     const msg = xmlDoc.getElementsByTagName("msg")[0].childNodes[0].nodeValue;
-                
+            
                     try {
                         if (!msg) {
                             console.error("Brak danych w wiadomo≈õci.");
                             break;
                         }
-                
+            
                         const base64String = msg;
                         const binaryString = atob(base64String);
                         const byteArray = new Uint8Array(binaryString.length);
-                
+            
                         let j 
                         if(this.buffer.length == 0){
                             j = 0;
@@ -302,25 +324,31 @@ class ClientJs {
                     break;*/
 
                 case ("pls"):
-                    clientId = xmlDoc.getElementsByTagName("mid")[0].childNodes[0].nodeValue;
-                    myPubKey = globalPublicKeyPem;
-                    console.log("pls: " + clientId);
-                    tb = "<tb>";
-                    tb += "<instance>key</instance>";
-                    tb += "<id>" + clientId + "</id>";
-                    tb += "<msg>" + myPubKey + "</msg>";
-                    tb += "<mid>" + MyUsername + "</mid>";                    
-                    tb += "</tb>";
-                    socket.send(tb);
+                    {
+                        let clientId, myPubKey, tb;
+                        clientId = xmlDoc.getElementsByTagName("mid")[0].childNodes[0].nodeValue;
+                        myPubKey = globalPublicKeyPem;
+                        console.log("pls: " + clientId);
+                        tb = "<tb>";
+                        tb += "<instance>key</instance>";
+                        tb += "<id>" + clientId + "</id>";
+                        tb += "<msg>" + myPubKey + "</msg>";
+                        tb += "<mid>" + MyUsername + "</mid>";                    
+                        tb += "</tb>";
+                        socket.send(tb);
+                    }
                     break;
 
                 case ("key"):
-                    console.log("AAAAAAAAAAAAA:")
-                    console.log(response);
-                    reciverPubKey = xmlDoc.getElementsByTagName("msg")[0].childNodes[0].nodeValue;
-                    //document.getElementById("reciverPubKey").innerHTML = reciverPubKey;
-                    console.log("AAAAAAAAAAAAA:" + reciverPubKey)
-                    ReciverPubKey = reciverPubKey
+                    {
+                        let receiverPubKey;
+                        console.log("AAAAAAAAAAAAA:")
+                        console.log(response);
+                        receiverPubKey = getXmlElementValue ("msg");
+                        //document.getElementById("reciverPubKey").innerHTML = receiverPubKey;
+                        console.log("AAAAAAAAAAAAA:" + receiverPubKey)
+                        ReciverPubKey = receiverPubKey
+                    }
                     break;   
 
                 default:
